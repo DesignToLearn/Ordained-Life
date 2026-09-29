@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Our Faith Study</title>
+<title>Ordained Life</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Our Faith">
+<meta name="apple-mobile-web-app-title" content="Ordained Life">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1E3A5F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -115,6 +115,36 @@
     font-size:12.5px; color:var(--ink-soft); white-space:nowrap;
     font-variant-numeric:tabular-nums;
   }
+
+  /* category row */
+  .cat-row{display:flex; flex-direction:column; gap:9px; margin-bottom:2px;}
+  .cat-tab{
+    display:flex; align-items:center; gap:10px; border:0; background:transparent; padding:2px 0;
+    font:inherit; cursor:pointer; text-align:left; width:100%;
+  }
+  .cat-tab.locked{cursor:default; opacity:.5;}
+  .cat-name{
+    font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--ink-soft); width:66px; flex-shrink:0;
+  }
+  .cat-tab.active .cat-name{color:var(--gold);}
+  .cat-track{
+    flex:1; height:5px; border-radius:99px; background:var(--surface-2); overflow:hidden;
+  }
+  .cat-fill{
+    display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--teal)); border-radius:99px;
+    transition:width .35s ease;
+  }
+  .cat-count{
+    font-size:11px; color:var(--ink-soft); white-space:nowrap; font-variant-numeric:tabular-nums;
+    width:84px; text-align:right; flex-shrink:0;
+  }
+  .coming-soon{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:48px 20px; text-align:center; box-shadow:var(--shadow);
+  }
+  .coming-soon h2{font-size:20px; color:var(--teal-deep); margin:0 0 8px;}
+  .coming-soon p{font-size:13.5px; color:var(--ink-soft); margin:0;}
 
   /* segmented control */
   .seg{
@@ -320,17 +350,30 @@
 
 <div class="wrap">
   <header class="top">
+    <div class="cat-row" id="catRow">
+      <button class="cat-tab active" id="catTheology" data-cat="theology">
+        <span class="cat-name">Theology</span>
+        <span class="cat-track"><span class="cat-fill" id="progressFill"></span></span>
+        <span class="cat-count" id="progressLabel">0 / 0 mastered</span>
+      </button>
+      <button class="cat-tab locked" id="catBible" data-cat="bible">
+        <span class="cat-name">Bible</span>
+        <span class="cat-track"><span class="cat-fill" style="width:0%"></span></span>
+        <span class="cat-count">Coming soon</span>
+      </button>
+      <button class="cat-tab locked" id="catBCO" data-cat="bco">
+        <span class="cat-name">BCO</span>
+        <span class="cat-track"><span class="cat-fill" style="width:0%"></span></span>
+        <span class="cat-count">Coming soon</span>
+      </button>
+    </div>
     <div class="title-row">
       <div>
-        <div class="eyebrow" id="qRangeLabel">Our Faith &middot; Q. 1&ndash;38</div>
+        <div class="eyebrow" id="qRangeLabel">Ordained Life &middot; Q. 1&ndash;38</div>
         <h1>Westminster Shorter Catechism</h1>
       </div>
     </div>
     <div class="arc">Creation &middot; Fall &middot; <b>Redemption</b> &middot; Glory</div>
-    <div class="progress-row">
-      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="progress-label" id="progressLabel">0 / 0 mastered</div>
-    </div>
     <div class="seg">
       <button id="tabStudy" class="active">Study</button>
       <button id="tabReview">Review<span class="badge" id="reviewBadge" hidden>0</span></button>
@@ -342,6 +385,13 @@
       <select id="voiceSelect"><option value="">Loading voices…</option></select>
     </div>
   </header>
+
+  <main id="comingSoonView" hidden>
+    <div class="coming-soon">
+      <h2 id="comingSoonTitle">Bible</h2>
+      <p id="comingSoonText">Study cards for this category are coming soon.</p>
+    </div>
+  </main>
 
   <main id="studyView">
     <div class="card">
@@ -746,9 +796,10 @@ var PHOTOS = {1:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQD
   var BACKEND_KEY = "wscBackendUrl_v1";
   var POLL_MS = 20000;
   var pollTimer = null;
+  var DEFAULT_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzybwQzZ-xPqoc33KVia-qI19QCL5AYKiL8bjwL8jvi7CPnkatWQLC47F8AeCkInKBqpA/exec";
 
   function loadBackendUrl(){
-    try{ return localStorage.getItem(BACKEND_KEY) || ""; }catch(e){ return ""; }
+    try{ return localStorage.getItem(BACKEND_KEY) || DEFAULT_BACKEND_URL; }catch(e){ return DEFAULT_BACKEND_URL; }
   }
   function saveBackendUrl(url){
     try{ localStorage.setItem(BACKEND_KEY, url); }catch(e){ /* storage unavailable */ }
@@ -938,10 +989,21 @@ var PHOTOS = {1:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQD
     voices: [],
     profile: loadProfileLocal(),
     backendUrl: "",
-    members: []
+    members: [],
+    activeCat: "theology"
   };
 
   var el = {
+    catTheology: document.getElementById("catTheology"),
+    catBible: document.getElementById("catBible"),
+    catBCO: document.getElementById("catBCO"),
+    comingSoonView: document.getElementById("comingSoonView"),
+    comingSoonTitle: document.getElementById("comingSoonTitle"),
+    comingSoonText: document.getElementById("comingSoonText"),
+    segRow: document.querySelector(".seg"),
+    voiceRow: document.querySelector(".voice-row"),
+    titleRow: document.querySelector(".title-row"),
+    arcRow: document.querySelector(".arc"),
     qRangeLabel: document.getElementById("qRangeLabel"),
     progressFill: document.getElementById("progressFill"),
     progressLabel: document.getElementById("progressLabel"),
@@ -1234,6 +1296,42 @@ var PHOTOS = {1:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQD
   el.tabOverview.addEventListener("click", function(){ switchView("overview"); });
   el.tabGroup.addEventListener("click", function(){ switchView("group"); });
 
+  var CAT_LABELS = {
+    theology: "Theology",
+    bible: "Bible",
+    bco: "BCO"
+  };
+  var CAT_MESSAGES = {
+    bible: "The 66 books of the Bible — photo, theme, key verse, and outline for each — are coming soon.",
+    bco: "Book of Church Order cards are coming soon."
+  };
+
+  function selectCat(cat){
+    state.activeCat = cat;
+    el.catTheology.classList.toggle("active", cat==="theology");
+    el.catBible.classList.toggle("active", cat==="bible");
+    el.catBCO.classList.toggle("active", cat==="bco");
+    var isTheology = cat === "theology";
+    if(el.titleRow) el.titleRow.hidden = !isTheology;
+    if(el.arcRow) el.arcRow.hidden = !isTheology;
+    if(el.segRow) el.segRow.hidden = !isTheology;
+    if(el.voiceRow) el.voiceRow.hidden = !isTheology;
+    el.studyView.hidden = !(isTheology && (state.view==="study" || state.view==="review"));
+    el.overviewView.hidden = !(isTheology && state.view==="overview");
+    el.groupView.hidden = !(isTheology && state.view==="group");
+    el.comingSoonView.hidden = isTheology;
+    if(!isTheology){
+      el.comingSoonTitle.textContent = CAT_LABELS[cat];
+      el.comingSoonText.textContent = CAT_MESSAGES[cat];
+    } else {
+      switchView(state.view);
+    }
+  }
+
+  el.catTheology.addEventListener("click", function(){ selectCat("theology"); });
+  el.catBible.addEventListener("click", function(){ selectCat("bible"); });
+  el.catBCO.addEventListener("click", function(){ selectCat("bco"); });
+
   el.saveBackendUrlBtn.addEventListener("click", function(){
     var url = (el.backendUrlInput.value || "").trim();
     el.backendError.hidden = true;
@@ -1420,7 +1518,7 @@ var PHOTOS = {1:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQD
       start = prev = QNUMS[i];
     }
     ranges.push(start === prev ? String(start) : start + "–" + prev);
-    el.qRangeLabel.textContent = "Our Faith · Q. " + ranges.join(", ");
+    el.qRangeLabel.textContent = "Ordained Life · Q. " + ranges.join(", ");
   }
 
   renderQRangeLabel();
