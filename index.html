@@ -518,7 +518,7 @@
       <div class="group-error" id="profileError" hidden></div>
       <button class="link-btn" id="showLinkExisting" type="button">Already set up on another device?</button>
       <div id="linkExistingRow" class="link-existing-row" hidden>
-        <input type="text" id="linkIdInput" class="typebox" placeholder="Paste your member ID" style="min-height:auto;">
+        <input type="text" id="linkIdInput" class="typebox" placeholder="Your name (as you joined with) or member ID" style="min-height:auto;">
         <button class="btn ghost" id="linkExistingBtn" type="button">Link this device</button>
       </div>
       <button class="link-btn" id="changeBackendBtn" type="button">Change shared sheet URL</button>
@@ -545,9 +545,9 @@
   {n:3, section:"Scripture: Our Rule of Faith", q:"What do the Scriptures principally teach?", a:"The Scriptures principally teach, what man is to believe concerning God, and what duty God requires of man.", ref:"2 Timothy 1:13", v:"Follow the pattern of the sound words that you have heard from me, in the faith and love that are in Christ Jesus."},
   {n:4, section:"God and His Decrees", q:"What is God?", a:"God is a Spirit, infinite, eternal, and unchangeable, in his being, wisdom, power, holiness, justice, goodness, and truth.", ref:"John 4:24", v:"God is spirit, and those who worship him must worship in spirit and truth."},
   {n:5, section:"God and His Decrees", q:"Are there more Gods than one?", a:"There is but one only, the living and true God.", ref:"Deuteronomy 6:4", v:"Hear, O Israel: The Lord our God, the Lord is one."},
-  {n:6, section:"God and His Decrees", q:"How many persons are there in the Godhead?", a:"There are three persons in the Godhead; the Father, the Son, and the Holy Ghost; and these three are one God, the same in substance, equal in power and glory.", ref:"1 John 5:7", v:"For there are three that testify:"},
+  {n:6, section:"God and His Decrees", q:"How many persons are there in the Godhead?", a:"There are three persons in the Godhead; the Father, the Son, and the Holy Ghost; and these three are one God, the same in substance, equal in power and glory.", ref:"Matthew 28:19", v:"Go therefore and make disciples of all nations, baptizing them in the name of the Father and of the Son and of the Holy Spirit,"},
   {n:7, section:"God and His Decrees", q:"What are the decrees of God?", a:"The decrees of God are, his eternal purpose, according to the counsel of his will, whereby, for his own glory, he hath foreordained whatsoever comes to pass.", ref:"Ephesians 1:4,11", v:"even as he chose us in him before the foundation of the world, that we should be holy and blameless before him. In love … In him we have obtained an inheritance, having been predestined according to the purpose of him who works all things according to the counsel of his will,"},
-  {n:8, section:"God and His Decrees", q:"How doth God execute his decrees?", a:"God executeth his decrees in the works of creation and providence.", ref:"Psalm 148:8", v:"Fire and hail, snow and mist, stormy wind fulfilling his word!"},
+  {n:8, section:"God and His Decrees", q:"How doth God execute his decrees?", a:"God executeth his decrees in the works of creation and providence.", ref:"Isaiah 40:26", v:"Lift up your eyes on high and see: who created these? He who brings out their host by number, calling them all by name; by the greatness of his might and because he is strong in power, not one is missing."},
   {n:9, section:"God and His Decrees", q:"What is the work of creation?", a:"The work of creation is, God’s making all things of nothing, by the word of his power, in the space of six days, and all very good.", ref:"Genesis 1", v:"In the beginning, God created the heavens and the earth."},
   {n:10, section:"God and His Decrees", q:"How did God create man?", a:"God created man male and female, after his own image, in knowledge, righteousness, and holiness, with dominion over the creatures.", ref:"Genesis 1:26–28", v:"Then God said, ‘Let us make man in our image, after our likeness. And let them have dominion over the fish of the sea and over the birds of the heavens and over the livestock and over all the earth and over every creeping thing that creeps on the earth.’ So God created man in his own image, in the image of God he created him; male and female he created them. And God blessed them. And God said to them, ‘Be fruitful and multiply and fill the earth and subdue it, and have dominion over the fish of the sea and over the birds of the heavens and over every living thing that moves on the earth.’"},
   {n:11, section:"God and His Decrees", q:"What are God’s works of providence?", a:"God’s works of providence are, his most holy, wise, and powerful preserving and governing all his creatures, and all their actions.", ref:"Psalm 145:17", v:"The LORD is righteous in all his ways and kind in all his works."},
@@ -955,22 +955,30 @@ var PHOTOS = {1:"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwQD
   }
 
   function tryLinkExisting(){
-    var id = (el.linkIdInput.value || "").trim();
+    var input = (el.linkIdInput.value || "").trim();
     el.profileError.hidden = true;
-    if(!id){
-      el.profileError.textContent = "Enter a member ID.";
+    if(!input){
+      el.profileError.textContent = "Enter your name or member ID.";
       el.profileError.hidden = false;
       return;
     }
-    var match = state.members.find(function(m){ return m.id === id; });
+    var match = state.members.find(function(m){ return m.id === input; });
     if(!match){
-      el.profileError.textContent = "No member found with that ID.";
+      var lower = input.toLowerCase();
+      match = state.members.find(function(m){ return (m.name||"").trim().toLowerCase() === lower; });
+    }
+    if(!match){
+      el.profileError.textContent = "No member found with that name or ID. Check the spelling, or ask them to send you the member ID shown on their Group tab.";
       el.profileError.hidden = false;
       return;
     }
     state.profile = {id: match.id, name: match.name};
     saveProfileLocal(state.profile);
+    el.linkIdInput.value = "";
+    el.profileNameInput.value = "";
+    el.linkExistingRow.hidden = true;
     renderGroup();
+    fetchMembers();
   }
 
   var progress = loadProgress();
